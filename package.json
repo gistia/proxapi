@@ -1,0 +1,22 @@
+{
+  "name": "proxapi",
+  "version": "0.1.0",
+  "description": "API Proxy that perform requests and cache responses on MongoDB collection",
+  "main": "index.js",
+  "repository": "https://github.com/gistia/proxapi",
+  "author": "Felipe Coury <felipe.coury@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "debug-http": "1.1.0",
+    "dotenv": "4.0.0",
+    "express": "4.16.2",
+    "http-proxy": "1.16.2",
+    "http-proxy-middleware": "0.17.4",
+    "logger": "http://github.com/gistia/logger.git",
+    "mongodb-promise": "https://github.com/gistia/mongodb-promise.git"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  }
+}
