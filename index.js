@@ -31,9 +31,15 @@ const onProxyRes = (proxyRes, req, res) => {
   });
   proxyRes.on('end', () => {
     const { originalUrl, client } = req;
-    logger.debug('caching', originalUrl);
+    const { headers, statusCode } = proxyRes;
+    if (statusCode !== 200) {
+      logger.debug(originalUrl, statusCode, '~> NO CACHE');
+      return;
+    }
+    logger.debug(originalUrl, '~> CACHED');
     client.insert('cache', {
       url: originalUrl,
+      headers,
       body,
     }).catch(err => {
       console.error('error storing cache', err);
@@ -72,7 +78,9 @@ app.use((req, res, next) => {
   client.query('cache').find({ url }).execute().then(results => {
     logger.debug(url, '~>', results.length ? 'HIT' : 'MISS');
     if (results.length) {
-      return res.send(results[0].body);
+      const { headers, body } = results[0];
+      Object.keys(headers).forEach(header => res.setHeader(header, headers[header]));
+      return res.send(body);
     }
     req.originalUrl = url;
     next();
