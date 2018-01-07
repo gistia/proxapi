@@ -8,7 +8,9 @@ dotenv.config();
 require('./promise-setup');
 require('logger');
 
-const config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+const configFile = process.env.CONFIG || process.argv[2] || 'config.json';
+const config = JSON.parse(fs.readFileSync(configFile, 'utf8'));
+logger.info('reading settings from', configFile);
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 
@@ -91,4 +93,7 @@ app.use((req, res, next) => {
 });
 
 app.use(routingProxy);
-app.listen(8083);
+
+const port = config.port || process.env.port || 8083;
+app.listen(port);
+logger.info('server up ~>', port);
