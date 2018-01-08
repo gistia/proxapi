@@ -32,13 +32,13 @@ const onProxyRes = (proxyRes, req, res) => {
     body += chunk;
   });
   proxyRes.on('end', () => {
-    const { originalUrl, client } = req;
+    const { originalUrl, client, method } = req;
     const { headers, statusCode } = proxyRes;
     if (statusCode !== 200) {
-      logger.debug(originalUrl, statusCode, '~> NO CACHE');
+      logger.debug(method, originalUrl, statusCode, '~> NO CACHE');
       return;
     }
-    logger.debug(originalUrl, '~> CACHED');
+    logger.debug(method, originalUrl, '~> CACHED');
     client.insert('cache', {
       url: originalUrl,
       headers,
@@ -76,9 +76,21 @@ app.use((req, res, next) => {
 
 app.use((req, res, next) => {
   const { client } = req;
-  const { url } = req;
+  const { url, method, headers } = req;
+
+  if (method !== 'GET') {
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk;
+    });
+    req.on('end', () => {
+      logger.debug(method, url, '~> STORING REQUEST');
+      client.insert('requests', { url, method, headers, body });
+    });
+  }
+
   client.query('cache').find({ url }).execute().then(results => {
-    logger.debug(url, '~>', results.length ? 'HIT' : 'MISS');
+    logger.debug(method, url, '~>', results.length ? 'HIT' : 'MISS');
     if (results.length) {
       const { headers, body } = results[0];
       Object.keys(headers).forEach(header => res.setHeader(header, headers[header]));
